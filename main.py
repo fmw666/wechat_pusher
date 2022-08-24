@@ -1,21 +1,23 @@
 import random
 from time import time, localtime
+from typing import Dict
 import cityinfo
 from requests import get, post
+from bs4 import BeautifulSoup
 from datetime import datetime, date
 from zhdate import ZhDate
 import sys
 import os
 
 
-def get_color():
+def get_color() -> str:
     # 获取随机颜色
     get_colors = lambda n: list(map(lambda i: "#" + "%06x" % random.randint(0, 0xFFFFFF), range(n)))
     color_list = get_colors(100)
     return random.choice(color_list)
 
 
-def get_access_token():
+def get_access_token() -> str:
     # appId
     app_id = config["app_id"]
     # appSecret
@@ -23,7 +25,7 @@ def get_access_token():
     post_url = ("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={}&secret={}"
                 .format(app_id, app_secret))
     try:
-        access_token = get(post_url).json()['access_token']
+        access_token = get(post_url).json()["access_token"]
     except KeyError:
         print("获取access_token失败，请检查app_id和app_secret是否正确")
         os.system("pause")
@@ -32,7 +34,23 @@ def get_access_token():
     return access_token
 
 
-def get_weather(province, city):
+def get_uk_weather() -> Dict:
+    # 获取 格拉斯哥 天气
+    url = "https://weather.com/zh-CN/weather/today/l/5a88f118aa4d4ed2e88e87e88f8a8986b20bbbbe8f0beabe18b7237697887197"
+    html = get(url).text
+    bsObj = BeautifulSoup(html, "html.parser")
+
+    current_temp = bsObj.select(".CurrentConditions--tempValue--3a50n")[0].text
+    weather = bsObj.select(".CurrentConditions--phraseValue--2Z18W")[0].text
+    weather_range = bsObj.select(".CurrentConditions--tempHiLoValue--3SUHy")[0].text
+    return {
+        "current_temp": current_temp,
+        "weather": weather,
+        "weather_range": weather_range
+    }
+
+
+def get_weather(province, city) -> Dict:
     # 城市id
     try:
         city_id = cityinfo.cityInfo[province][city]["AREAID"]
@@ -61,10 +79,15 @@ def get_weather(province, city):
     temp = weatherinfo["temp"]
     # 最低气温
     tempn = weatherinfo["tempn"]
-    return weather, temp, tempn
+    return {
+        "city": city,
+        "weather": weather,
+        "max_temperature": temp,
+        "min_temperature": tempn
+    }
 
 
-def get_birthday(birthday, year, today):
+def get_birthday(birthday, year, today) -> str:
     birthday_year = birthday.split("-")[0]
     # 判断是否为农历生日
     if birthday_year[0] == "r":
@@ -73,8 +96,6 @@ def get_birthday(birthday, year, today):
         # 今年生日
         birthday = ZhDate(year, r_mouth, r_day).to_datetime().date()
         year_date = birthday
-
-
     else:
         # 获取国历生日的今年对应月和日
         birthday_month = int(birthday.split("-")[1])
@@ -98,7 +119,7 @@ def get_birthday(birthday, year, today):
     return birth_day
 
 
-def get_ciba():
+def get_ciba() -> Dict:
     url = "http://open.iciba.com/dsapi/"
     headers = {
         'Content-Type': 'application/json',
@@ -108,10 +129,13 @@ def get_ciba():
     r = get(url, headers=headers)
     note_en = r.json()["content"]
     note_ch = r.json()["note"]
-    return note_ch, note_en
+    return {
+        "note_en": note_en,
+        "note_ch": note_ch
+    }
 
 
-def send_message(to_user, access_token, city_name, weather, max_temperature, min_temperature, note_ch, note_en):
+def send_message(to_user, access_token, uk_weather, zh_weather, note):
     url = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={}".format(access_token)
     week_list = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
     year = localtime().tm_year
@@ -141,33 +165,49 @@ def send_message(to_user, access_token, city_name, weather, max_temperature, min
                 "value": "{} {}".format(today, week),
                 "color": get_color()
             },
+            "uk_city": {
+                "value": "格拉斯哥 · 苏格兰 · 英国",
+                "color": "#3CB371"
+            },
+            "uk_temperature": {
+                "value": uk_weather.get("current_temp"),
+                "color": "#4169E1"
+            },
+            "uk_weather": {
+                "value": uk_weather.get("weather"),
+                "color": "#4169E1"
+            },
+            "uk_weather_range": {
+                "value": uk_weather.get("weather_range"),
+                "color": "#4169E1"
+            },
             "city": {
-                "value": city_name,
-                "color": get_color()
+                "value": zh_weather.get("city"),
+                "color": "#3CB371"
             },
             "weather": {
-                "value": weather,
-                "color": get_color()
+                "value": zh_weather.get("weather"),
+                "color": "#4169E1"
             },
             "min_temperature": {
-                "value": min_temperature,
-                "color": get_color()
+                "value": zh_weather.get("min_temperature"),
+                "color": "#4169E1"
             },
             "max_temperature": {
-                "value": max_temperature,
-                "color": get_color()
+                "value": zh_weather.get("max_temperature"),
+                "color": "#4169E1"
             },
             "love_day": {
                 "value": love_days,
-                "color": get_color()
+                "color": "#FF1493"
             },
             "note_en": {
-                "value": note_en,
-                "color": get_color()
+                "value": note.get("note_en"),
+                "color": "#00BFFF"
             },
             "note_ch": {
-                "value": note_ch,
-                "color": get_color()
+                "value": note.get("note_ch"),
+                "color": "#FFD700"
             }
         }
     }
@@ -177,9 +217,9 @@ def send_message(to_user, access_token, city_name, weather, max_temperature, min
         if birth_day == 0:
             birthday_data = "今天{}生日哦，祝{}生日快乐！".format(value["name"], value["name"])
         else:
-            birthday_data = "距离{}的生日还有{}天".format(value["name"], birth_day)
+            birthday_data = "距离{}的生日还有 {} 天".format(value["name"], birth_day)
         # 将生日数据插入data
-        data["data"][key] = {"value": birthday_data, "color": get_color()}
+        data["data"][key] = {"value": birthday_data, "color": "#9400D3"}
     headers = {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
@@ -200,10 +240,10 @@ def send_message(to_user, access_token, city_name, weather, max_temperature, min
 
 if __name__ == "__main__":
     try:
-        with open("config.txt", encoding="utf-8") as f:
+        with open("config.json", encoding="utf-8") as f:
             config = eval(f.read())
     except FileNotFoundError:
-        print("推送消息失败，请检查config.txt文件是否与程序位于同一路径")
+        print("推送消息失败，请检查config.json文件是否与程序位于同一路径")
         os.system("pause")
         sys.exit(1)
     except SyntaxError:
@@ -216,11 +256,12 @@ if __name__ == "__main__":
     # 接收的用户
     users = config["user"]
     # 传入省份和市获取天气信息
+    uk_weather = get_uk_weather()
     province, city = config["province"], config["city"]
-    weather, max_temperature, min_temperature = get_weather(province, city)
+    zh_weather = get_weather(province, city)
     # 获取词霸每日金句
-    note_ch, note_en = get_ciba()
+    note = get_ciba()
     # 公众号推送消息
     for user in users:
-        send_message(user, accessToken, city, weather, max_temperature, min_temperature, note_ch, note_en)
+        send_message(user, accessToken, uk_weather, zh_weather, note)
     os.system("pause")

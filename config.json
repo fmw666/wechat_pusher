@@ -1,0 +1,12 @@
+{
+    "app_id": "wxd9c7d8df2957d84c",
+    "app_secret": "eee72a1d876bfbfaed45155a10046a22",
+    "template_id": "21N7nmIv2j4NTU3tXPCZrworyF6TX0LeC4BFFCfL43M",
+    "user": ["oIOL451J7nlpXylXVNeF8Iw5Wpu8", "oIOL459o5TAdw7FUWBU2kAeGoaDA"],
+    
+    "province": "四川",
+    "city": "成都",
+    "birthday1": {"name": "小唐", "birthday": "1999-12-28"},
+    "birthday2": {"name": "小范", "birthday": "1999-07-18"},
+    "love_date": "2019-09-15"
+}

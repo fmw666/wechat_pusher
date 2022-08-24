@@ -1,0 +1,23 @@
+{{data.DATA}}
+
+城市：{{city.DATA}} 
+天气：{{weather.DATA}}（{{max_temperature.DATA}} / {{min_temperature.DATA}}）
+
+城市：{{uk_city.DATA}}
+天气：{{uk_temperature.DATA}} / {{uk_weather.DATA}} / {{uk_weather_range.DATA}}
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+今天是我们恋爱的第 {{love_day.DATA}} 天 ♥♥♥ 
+{{birthday1.DATA}}
+{{birthday2.DATA}}
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+每日一句：
+{{note_en.DATA}}
+{{note_ch.DATA}}
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+小唐今天也要乖乖的吃饭哦~ ( •̀ ω •́ )y
