@@ -2,9 +2,11 @@
 
 城市：{{city.DATA}} 
 天气：{{weather.DATA}}（{{max_temperature.DATA}} / {{min_temperature.DATA}}）
+时区：{{timezone.DATA}}（Asia/Shanghai）
 
 城市：{{uk_city.DATA}}
 天气：{{uk_temperature.DATA}} / {{uk_weather.DATA}} / {{uk_weather_range.DATA}}
+时区：{{uk_timezone.DATA}}（Europe/London）
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

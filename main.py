@@ -1,3 +1,4 @@
+import json
 import random
 from time import time, localtime
 from typing import Dict
@@ -32,6 +33,18 @@ def get_access_token() -> str:
         sys.exit(1)
     # print(access_token)
     return access_token
+
+
+def get_time_zone() -> Dict:
+    base_url = "https://www.timeapi.io/api/Time/current/zone?timeZone="
+    zones = ["Europe/London", "Asia/Shanghai"]
+    results = {}
+    for zone in zones:
+        url = base_url + zone
+        content = json.loads(get(url).content)
+        results[zone] = f"{content.get('time')} {content.get('date')} {content.get('dayOfWeek')}"
+
+    return results
 
 
 def get_uk_weather() -> Dict:
@@ -135,7 +148,7 @@ def get_ciba() -> Dict:
     }
 
 
-def send_message(to_user, access_token, uk_weather, zh_weather, note):
+def send_message(to_user, access_token, time_zones, uk_weather, zh_weather, note):
     url = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token={}".format(access_token)
     week_list = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"]
     year = localtime().tm_year
@@ -164,6 +177,12 @@ def send_message(to_user, access_token, uk_weather, zh_weather, note):
             "date": {
                 "value": "{} {}".format(today, week),
                 "color": get_color()
+            },
+            "timezone": {
+                "value": time_zones.get('Asia/Shanghai')
+            },
+            "uk_timezone": {
+                "value": time_zones.get('Europe/London')
             },
             "uk_city": {
                 "value": "格拉斯哥 · 苏格兰 · 英国",
@@ -255,6 +274,8 @@ if __name__ == "__main__":
     accessToken = get_access_token()
     # 接收的用户
     users = config["user"]
+    # 获取时区信息
+    time_zones = get_time_zone()
     # 传入省份和市获取天气信息
     uk_weather = get_uk_weather()
     province, city = config["province"], config["city"]
@@ -263,5 +284,5 @@ if __name__ == "__main__":
     note = get_ciba()
     # 公众号推送消息
     for user in users:
-        send_message(user, accessToken, uk_weather, zh_weather, note)
+        send_message(user, accessToken, time_zones, uk_weather, zh_weather, note)
     os.system("pause")
