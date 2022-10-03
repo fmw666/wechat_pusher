@@ -2,13 +2,23 @@ import json
 import random
 from time import time, localtime
 from typing import Dict
-import cityinfo
 from requests import get, post
 from bs4 import BeautifulSoup
 from datetime import datetime, date
 from zhdate import ZhDate
 import sys
 import os
+
+
+weekday_map = {
+    "Monday": "周一",
+    "Tuesday": "周二",
+    "Wednesday": "周三",
+    "Thursday": "周四",
+    "Friday": "周五",
+    "Saturday": "周六",
+    "Sunday": "周日"
+}
 
 
 def get_color() -> str:
@@ -42,7 +52,7 @@ def get_time_zone() -> Dict:
     for zone in zones:
         url = base_url + zone
         content = json.loads(get(url).content)
-        results[zone] = f"{content.get('time')} {content.get('date')} {content.get('dayOfWeek')}"
+        results[zone] = f"{content.get('time')} {content.get('date')} {weekday_map[content.get('dayOfWeek')]}"
 
     return results
 
@@ -63,41 +73,54 @@ def get_uk_weather() -> Dict:
     }
 
 
-def get_weather(province, city) -> Dict:
-    # 城市id
-    try:
-        city_id = cityinfo.cityInfo[province][city]["AREAID"]
-    except KeyError:
-        print("推送消息失败，请检查省份或城市是否正确")
-        os.system("pause")
-        sys.exit(1)
-    # city_id = 101280101
-    # 毫秒级时间戳
-    t = (int(round(time() * 1000)))
-    headers = {
-        "Referer": "http://www.weather.com.cn/weather1d/{}.shtml".format(city_id),
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                      'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36'
-    }
-    url = "http://d1.weather.com.cn/dingzhi/{}.html?_={}".format(city_id, t)
-    response = get(url, headers=headers)
-    response.encoding = "utf-8"
-    response_data = response.text.split(";")[0].split("=")[-1]
-    response_json = eval(response_data)
-    # print(response_json)
-    weatherinfo = response_json["weatherinfo"]
-    # 天气
-    weather = weatherinfo["weather"]
-    # 最高气温
-    temp = weatherinfo["temp"]
-    # 最低气温
-    tempn = weatherinfo["tempn"]
+def get_weather() -> Dict:
+    # 获取 格拉斯哥 天气
+    url = "https://weather.com/zh-CN/weather/today/l/464e6967d2f00205cb7f8c59cd0a5929a033436e3f650addc3561470a746b252"
+    html = get(url).text
+    bsObj = BeautifulSoup(html, "html.parser")
+
+    current_temp = bsObj.select(".CurrentConditions--tempValue--3a50n")[0].text
+    weather = bsObj.select(".CurrentConditions--phraseValue--2Z18W")[0].text
+    weather_range = bsObj.select(".CurrentConditions--tempHiLoValue--3SUHy")[0].text
     return {
-        "city": city,
+        "current_temp": current_temp,
         "weather": weather,
-        "max_temperature": temp,
-        "min_temperature": tempn
+        "weather_range": weather_range
     }
+    # # 城市id
+    # try:
+    #     city_id = cityinfo.cityInfo[province][city]["AREAID"]
+    # except KeyError:
+    #     print("推送消息失败，请检查省份或城市是否正确")
+    #     os.system("pause")
+    #     sys.exit(1)
+    # # city_id = 101280101
+    # # 毫秒级时间戳
+    # t = (int(round(time() * 1000)))
+    # headers = {
+    #     "Referer": "http://www.weather.com.cn/weather1d/{}.shtml".format(city_id),
+    #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+    #                   'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36'
+    # }
+    # url = "http://d1.weather.com.cn/dingzhi/{}.html?_={}".format(city_id, t)
+    # response = get(url, headers=headers)
+    # response.encoding = "utf-8"
+    # response_data = response.text.split(";")[0].split("=")[-1]
+    # response_json = eval(response_data)
+    # # print(response_json)
+    # weatherinfo = response_json["weatherinfo"]
+    # # 天气
+    # weather = weatherinfo["weather"]
+    # # 最高气温
+    # temp = weatherinfo["temp"]
+    # # 最低气温
+    # tempn = weatherinfo["tempn"]
+    # return {
+    #     "city": city,
+    #     "weather": weather,
+    #     "max_temperature": temp,
+    #     "min_temperature": tempn
+    # }
 
 
 def get_birthday(birthday, year, today) -> str:
@@ -156,13 +179,14 @@ def send_message(to_user, access_token, time_zones, uk_weather, zh_weather, note
     day = localtime().tm_mday
     today = datetime.date(datetime(year=year, month=month, day=day))
     week = week_list[today.isoweekday() % 7]
-    # 获取在一起的日子的日期格式
-    love_year = int(config["love_date"].split("-")[0])
-    love_month = int(config["love_date"].split("-")[1])
-    love_day = int(config["love_date"].split("-")[2])
-    love_date = date(love_year, love_month, love_day)
+    # 获取日子的日期格式
+    love_date = datetime.strptime(config["love_date"], "%Y-%m-%d").date()
+    separate_date = datetime.strptime(config["separate_date"], "%Y-%m-%d").date()
+    meet_date = datetime.strptime(config["meet_date"], "%Y-%m-%d").date()
     # 获取在一起的日期差
     love_days = str(today.__sub__(love_date)).split(" ")[0]
+    separate_days = str(today.__sub__(separate_date)).split(" ")[0]
+    meet_days = str(meet_date.__sub__(today)).split(" ")[0]
     # 获取所有生日数据
     birthdays = {}
     for k, v in config.items():
@@ -201,24 +225,33 @@ def send_message(to_user, access_token, time_zones, uk_weather, zh_weather, note
                 "color": "#4169E1"
             },
             "city": {
-                "value": zh_weather.get("city"),
+                "value": "成都 · 四川 · 中国",
                 "color": "#3CB371"
             },
             "weather": {
                 "value": zh_weather.get("weather"),
                 "color": "#4169E1"
             },
-            "min_temperature": {
-                "value": zh_weather.get("min_temperature"),
+            "temperature": {
+                "value": zh_weather.get("current_temp"),
                 "color": "#4169E1"
             },
-            "max_temperature": {
-                "value": zh_weather.get("max_temperature"),
+            "weather_range": {
+                "value": zh_weather.get("weather_range"),
                 "color": "#4169E1"
+            },
+            "love_date": {
+                "value": config["love_date"]
             },
             "love_day": {
                 "value": love_days,
-                "color": "#FF1493"
+                "color": "#EB524D"
+            },
+            "separate": {
+                "value": f"距离上次相遇已经 {separate_days} 天 😭"
+            },
+            "meet": {
+                "value": f"距离下次相遇还剩 {meet_days} 天 😘😘"
             },
             "note_en": {
                 "value": note.get("note_en"),
@@ -226,7 +259,7 @@ def send_message(to_user, access_token, time_zones, uk_weather, zh_weather, note
             },
             "note_ch": {
                 "value": note.get("note_ch"),
-                "color": "#FFD700"
+                "color": "#F0C832"
             }
         }
     }
@@ -234,9 +267,9 @@ def send_message(to_user, access_token, time_zones, uk_weather, zh_weather, note
         # 获取距离下次生日的时间
         birth_day = get_birthday(value["birthday"], year, today)
         if birth_day == 0:
-            birthday_data = "今天{}生日哦，祝{}生日快乐！".format(value["name"], value["name"])
+            birthday_data = f"今天{value['name']}生日哦，祝{value['name']}生日快乐！"
         else:
-            birthday_data = "距离{}的生日还有 {} 天".format(value["name"], birth_day)
+            birthday_data = f"{value['name']}生日还有 {birth_day} 天"
         # 将生日数据插入data
         data["data"][key] = {"value": birthday_data, "color": "#9400D3"}
     headers = {
@@ -276,10 +309,9 @@ if __name__ == "__main__":
     users = config["user"]
     # 获取时区信息
     time_zones = get_time_zone()
-    # 传入省份和市获取天气信息
+    # 传入省份和市获取天气信息（默认格拉斯哥和成都）
     uk_weather = get_uk_weather()
-    province, city = config["province"], config["city"]
-    zh_weather = get_weather(province, city)
+    zh_weather = get_weather()
     # 获取词霸每日金句
     note = get_ciba()
     # 公众号推送消息

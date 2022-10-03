@@ -1,25 +1,21 @@
 {{data.DATA}}
 
 城市：{{city.DATA}} 
-天气：{{weather.DATA}}（{{max_temperature.DATA}} / {{min_temperature.DATA}}）
-时区：{{timezone.DATA}}（Asia/Shanghai）
+天气：{{temperature.DATA}} / {{weather.DATA}} / {{weather_range.DATA}}
+时区：{{timezone.DATA}}（亚洲/上海）
 
 城市：{{uk_city.DATA}}
 天气：{{uk_temperature.DATA}} / {{uk_weather.DATA}} / {{uk_weather_range.DATA}}
-时区：{{uk_timezone.DATA}}（Europe/London）
+时区：{{uk_timezone.DATA}}（欧洲/伦敦）
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-今天是我们恋爱的第 {{love_day.DATA}} 天 ♥♥♥ 
+我们恋爱已经 {{love_day.DATA}} 天 ♥♥♥ 
 {{birthday1.DATA}}
 {{birthday2.DATA}}
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{{separate.DATA}}
+{{meet.DATA}}
 
-每日一句：
-{{note_en.DATA}}
-{{note_ch.DATA}}
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-小唐今天也要乖乖的吃饭哦~ ( •̀ ω •́ )y
+{{data.DATA}}
