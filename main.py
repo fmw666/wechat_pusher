@@ -63,9 +63,9 @@ def get_uk_weather() -> Dict:
     html = get(url).text
     bsObj = BeautifulSoup(html, "html.parser")
 
-    current_temp = bsObj.select(".CurrentConditions--tempValue--3a50n")[0].text
-    weather = bsObj.select(".CurrentConditions--phraseValue--2Z18W")[0].text
-    weather_range = bsObj.select(".CurrentConditions--tempHiLoValue--3SUHy")[0].text
+    current_temp = bsObj.select(".CurrentConditions--tempValue--MHmYY")[0].text
+    weather = bsObj.select(".CurrentConditions--phraseValue--mZC_p")[0].text
+    weather_range = bsObj.select(".CurrentConditions--tempHiLoValue--3T1DG")[0].text
     return {
         "current_temp": current_temp,
         "weather": weather,
@@ -79,9 +79,9 @@ def get_weather() -> Dict:
     html = get(url).text
     bsObj = BeautifulSoup(html, "html.parser")
 
-    current_temp = bsObj.select(".CurrentConditions--tempValue--3a50n")[0].text
-    weather = bsObj.select(".CurrentConditions--phraseValue--2Z18W")[0].text
-    weather_range = bsObj.select(".CurrentConditions--tempHiLoValue--3SUHy")[0].text
+    current_temp = bsObj.select(".CurrentConditions--tempValue--MHmYY")[0].text
+    weather = bsObj.select(".CurrentConditions--phraseValue--mZC_p")[0].text
+    weather_range = bsObj.select(".CurrentConditions--tempHiLoValue--3T1DG")[0].text
     return {
         "current_temp": current_temp,
         "weather": weather,
