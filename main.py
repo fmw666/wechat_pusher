@@ -74,8 +74,8 @@ def get_uk_weather() -> Dict:
 
 
 def get_weather() -> Dict:
-    # 获取 格拉斯哥 天气
-    url = "https://weather.com/zh-CN/weather/today/l/464e6967d2f00205cb7f8c59cd0a5929a033436e3f650addc3561470a746b252"
+    # 获取 深圳 天气
+    url = "https://weather.com/zh-CN/weather/today/l/4945e1616a82b28a995f412bf561340d96d0d1941d2980e107c9fd4bf73be75e"
     html = get(url).text
     bsObj = BeautifulSoup(html, "html.parser")
 
@@ -225,7 +225,7 @@ def send_message(to_user, access_token, time_zones, uk_weather, zh_weather, note
                 "color": "#4169E1"
             },
             "city": {
-                "value": "成都 · 四川 · 中国",
+                "value": "深圳 · 广东 · 中国",
                 "color": "#3CB371"
             },
             "weather": {
