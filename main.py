@@ -306,7 +306,7 @@ if __name__ == "__main__":
     # 获取accessToken
     accessToken = get_access_token()
     # 接收的用户
-    users = config["user"]
+    users = config["users"]
     # 获取时区信息
     time_zones = get_time_zone()
     # 传入省份和市获取天气信息（默认格拉斯哥和成都）

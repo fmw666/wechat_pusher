@@ -2,7 +2,7 @@
     "app_id": "wx7bdcb05288f2c361",
     "app_secret": "16d4e56f28541f33a586080cabdfe42a",
     "template_id": "FyP_Pdv9rD1tofDxsUzhBlmRr_QiK28kfcSRI_qNrEk",
-    "user": ["o_Bp46uUf2JnJgq3qrgeWWybkMr8", "o_Bp46lj2alqD2l-TWhDj7b7D790"],
+    "users": ["o_Bp46uUf2JnJgq3qrgeWWybkMr8", "o_Bp46lj2alqD2l-TWhDj7b7D790"],
     
     "birthday1": {"name": "小唐", "birthday": "1999-12-28"},
     "birthday2": {"name": "小范", "birthday": "1999-07-18"},
